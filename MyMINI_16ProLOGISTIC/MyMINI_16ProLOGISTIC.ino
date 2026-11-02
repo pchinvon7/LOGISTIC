@@ -46,6 +46,12 @@ void setup()
 
       griper_set();
 
+      getCan();
+
+      delay(200);
+
+      slide_drop();
+
 
       // calibrateSensor(tcs0, "TCS0 (I2C0)");
       // arm_closeDown(); // สำหรับแข่งขัน
@@ -70,6 +76,8 @@ void setup()
       // Order1C1();
 
        run();
+
+      // C1_T_C2();
       
         
       

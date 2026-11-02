@@ -71,5 +71,12 @@ void GetFloor()
     servo(18, 140);
     delay(200);
     slide_up(200);
-
+  }
+void getInFloor()
+  {
+    slide_down(200);
+    delay(200);
+    servo(18, 140);
+    delay(200);
+    slide_up(700);
   }
