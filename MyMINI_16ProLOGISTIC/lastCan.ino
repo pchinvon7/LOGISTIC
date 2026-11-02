@@ -9,4 +9,7 @@ void C1_T_C2()
     delay(200);
     slide_up(700);
     b_line(20, 20, 0.4f, cl, 10); turn(tr, 40, f11, 10);
+    f_line(50, 50, 0.4f, f0, 0);
+    f_line(50, 50, 0.4f, f0, 0);
+    f_line(40, 40, 0.4f, cl, 10);
   }

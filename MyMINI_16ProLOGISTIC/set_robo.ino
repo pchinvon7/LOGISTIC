@@ -40,7 +40,7 @@ void robot_setup()
     set_line_ramp_start_speed(5);       // สปีดเริ่ม f_line/b_line เมื่อสปีดที่สั่งตั้งแต่ 40
     set_line_ramp_ms(100);              // เวลาไล่ถึงสปีดที่สั่ง (ms); 0=ไม่ไล่สปีด
     set_line_decel_ramp_cm(100);        // ชะลอก่อนครบระยะ 1.00 ซม.; 100=1.00 ซม., 0=ปิด
-    set_line_pid_tuning(0.0155f);       // Kd ของ f_line/b_line; Kp ใช้ค่าที่ส่งในคำสั่ง
+    set_line_pid_tuning(0.02f);       // Kd ของ f_line/b_line; Kp ใช้ค่าที่ส่งในคำสั่ง
     set_gyro_kd(0.00850f, 0.0125f);    // Kd ของ fw_gyro, bw_gyro ตามลำดับ
     set_rotate_fallback(300, 550, 50); // ใช้เฉพาะ rotate_spin/pivot เมื่อ gyro ใช้ไม่ได้; turn_gyro จะหยุดพร้อมแจ้งข้อผิดพลาด
     set_turn_approach(15, 15, 20);     // สปีดเข้าหาเส้นหลังจบด้วยเซนเซอร์/ระยะทาง, กำลังเบรกสวน

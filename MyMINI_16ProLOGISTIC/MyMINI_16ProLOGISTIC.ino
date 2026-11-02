@@ -46,11 +46,11 @@ void setup()
 
       griper_set();
 
-      getCan();
+      // getCan();
 
-      delay(200);
+      // delay(200);
 
-      slide_drop();
+      // slide_drop();
 
 
       // calibrateSensor(tcs0, "TCS0 (I2C0)");
