@@ -12,4 +12,8 @@ void C1_T_C2()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f0, 0);
     f_line(40, 40, 0.4f, cl, 10);
+    slide_set();
+    slide_up(700);
+    emptyOrder();
+    GC2();
   }

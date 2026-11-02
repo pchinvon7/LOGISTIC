@@ -45,6 +45,8 @@ void setup()
       servo(18, 50);
 
       griper_set();
+      getCan();
+      slide_drop();
 
       // getCan();
 
@@ -75,9 +77,9 @@ void setup()
 
       // Order1C1();
 
-       run();
+      //  run();
 
-      // C1_T_C2();
+      C1_T_C2();
       
         
       

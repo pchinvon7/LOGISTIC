@@ -204,7 +204,7 @@ void run()
     if(readADC_F() < 5000) // ไม่มีกระป๋อง
       {
         b_line(10, 10, 0.2f, 2, 10);
-        turn(tr, 90, f11, 5);
+        turn(tr, 40, f11, 10);
         f_line(40, 40, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
         setGetFloor();
         f_line(30, 30, 0.4f, 5, 0);

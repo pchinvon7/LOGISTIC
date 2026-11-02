@@ -24,7 +24,7 @@ void set_can()
   }
 void getCan()
   {
-    servo(18, 140);
+    servo(18, 130);
     delay(200);
     slide_up(850);
     delay(200);
