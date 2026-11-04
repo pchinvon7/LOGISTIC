@@ -1,4 +1,5 @@
 #include <MyMINI_16Pro.h>
+#include "line_arm.h"
 
 #include <Wire.h>
 #include <my_TCS.h>
@@ -55,6 +56,8 @@ void setup()
       griper_set();
       // Retry after the gripper setup if the ESP32 was still booting.
       sendColorBands(String("GREEN"));
+
+      // servo(28, 130);
       
       //calibrateSensor(tcs0, "TCS0 (I2C0)");
       wait_button();
@@ -65,54 +68,28 @@ void setup()
        
       ////////////////////////////////////////////////////////////////////////////////////////---------------->>>>>>>>>>>>> 
      
-      // servo(28, 10);
-      // delay(200);
-      // f_line(20, 20, 0.0f, 10.0f, 0); 
-      // positoin_error = 70; 
-      // f_line(20, 20, 0.25f, cl, 0);
-      // positoin_error = 70; 
-      // f_line(20, 20, 0.25f, b0, 5);
-      // delay(200);
-      // start_robot();
-      // delay(1000);
-      // positoin_error = 70; 
-      // f_line(40, 40, 0.5f, f0, 1);
-      // turn(tcl, 40, f5,  10);
-      // griper_set();
-      // run();
+      servo(28, 10);
+      delay(200);
+      do{motor(20, 20);}while(readADC_F(0) > 500);
+      f_line(20, 20, 0.0f, 10.0f, 0); 
+      positoin_error = 70; 
+      f_line(20, 20, 0.25f, cl, 0);
+      positoin_error = 70; 
+      f_line(20, 20, 0.25f, b0, 5);
+      delay(200);
+      start_robot();
+      delay(1000);
+      positoin_error = 70; 
+      f_line(40, 40, 0.5f, f0, 1);
+      turn(tcl, 40, f5,  10);
+      griper_set();
+      slide_up(200);
+      run();
 
-      getCan();
-      GC1();
-      wait_button();
-      griper_set();
-      getCan();
-      GC2();
-      wait_button();
-      griper_set();
-      getCan();
-      GC3();
-      wait_button();
-      griper_set();
-      getCan();
-      GC4();
-      wait_button();
-      griper_set();
-      getCan();
-      GC5();
-      wait_button();
-      GC6();
-      wait_button();
-      LGC1();
-      wait_button();
-      LGC2();
-      wait_button();
-      LGC3();
-      wait_button();
-      LGC4();
-      wait_button();
-      LGC5();
-      wait_button();
-      LGC6();
+      // griper_setF();
+
+
+      // getCan();
 
       // emptyOrder();
 
@@ -198,10 +175,13 @@ void setup()
 void loop()
   {    
     //Repeat a confirmed order so a restarted ESP32 display can recover.
+
     if (millis() - lastColorSendMs >= 2000u) {
       resendColorBandsIfEnabled();
       lastColorSendMs = millis();
     }
+
+    // Serial.println(readADC_F());
   //read_color();
   //    //read_gyro();
   //    delay(30);

@@ -3,7 +3,7 @@ void emptyOrder()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, cl, 0);
     f_line(50, 50, 0.4f, 20, 0);
-    f_line(50, 50, 0.4f, f15, 1); turn(tfr, 90, f10, 5);
+    f_line(40, 40, 0.4f, f15, 1); turn(tfr, 90, f11, 5);
     f_line(50, 50, 0.4f, f0, 0);
     f_line(40, 40, 0.4f, f0, 1); turn(tcl, 40, f6, 10);
     // setGetFloor();

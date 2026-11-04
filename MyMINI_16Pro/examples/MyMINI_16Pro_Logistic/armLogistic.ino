@@ -121,16 +121,17 @@ void getCan()
     servo(28, 90);
     slide_up(700);
     delay(200);
-    servo(28, 140);
+    servo(28, 130);
   }
 
 void check_bic()
   {
     _bic_color = "";  // Never reuse the previous can's color after a failed read.
-  slide_up(200);
+  // slide_up(200);
    servo(28, 60);
    delay(200);
    f_line(10, 10, 0.5f, 3,    1);
+   servo(28, 50);
    delay(300);
    static const char* const names[6] = {
        "RED", "GREEN", "YELLOW", "BLUE", "WHITE", "BLACK"};
@@ -275,4 +276,16 @@ void getInFloor()
     servo(18, 140);
     delay(200);
     slide_up(700);
+  }
+void griper_setF()
+  {
+    servo(28, 10);
+    delay(200);
+    servo(18, 50);
+
+    f_line(40, 40, 0.4f, 30.0f, 1, 0);
+    do{servo(22, 180);Serial.println(digitalRead(1));delay(10);}while(digitalRead(1) == 0);
+    delay(50);
+    servo(22, 90);
+    servo(28, 90);
   }
