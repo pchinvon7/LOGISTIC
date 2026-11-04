@@ -91,6 +91,8 @@ bool set_line_ramp_start_speed(int startSpeed);
 // Default 1.0. If a 20 cm command travels 35 cm, start with 35/20 = 1.75.
 // Valid finite range: greater than 0 through 5.0. Tune on the actual robot.
 bool set_line_distance_scale(float scale);
+// Current scale used by the open-loop distance model; no wheel encoder feedback.
+float get_line_distance_scale();
 // Distance-ended f_line()/b_line(). Pass centimeters x 100 as an integer:
 // 200 = 2.00 cm, 150 = 1.50 cm. Default is 200 (2.00 cm);
 // 0 disables the slowdown. Values longer than the target cover the whole
@@ -192,6 +194,11 @@ bool f_line_gyro_succeeded();
 // -----------------------------------------------------------------------------
 
 void b_line(int sl, int sr, float kp, LineExitSensor exitSensor,
+            uint8_t stopPull = 0);
+// Stop when both selected sensors see black in the same frame, confirmed in
+// two of three frames after the usual b_line white-release arming.
+// Example: b_line(50, 50, 0.4f, cl & cr, 1);
+void b_line(int sl, int sr, float kp, LineExitPair exitSensors,
             uint8_t stopPull = 0);
 void b_line(int sl, int sr, float kp, float distanceCm,
             uint8_t stopPull = 0);

@@ -1,3 +1,5 @@
+bool scanColorSensorReady = false;
+
 void setup_color()
   {
     
@@ -13,19 +15,36 @@ void setup_color()
   // เริ่มเซ็นเซอร์ตัวแรก
   Serial.print("เริ่มต้น TCS0 (I2C0): ");
   if (tcs0.begin(TCS34725_ADDRESS, &Wire)) {
-    Serial.println("OK");
-    tcs0.printCalibration(); // Show what was actually loaded from EEPROM
+    if (tcs0.setConfig(TCS_IT_50MS, TCS_GAIN_4X)) {
+      scanColorSensorReady = true;
+      Serial.println("OK; integration 50 ms, gain 4x");
+      tcs0.printCalibration(); // Must be calibrated at these same settings.
+    } else {
+      Serial.println("ตั้งเวลา/เกน TCS ไม่สำเร็จ");
+    }
   } else {
     Serial.println("ไม่พบ! ตรวจสอบสาย I2C0");
     //while(1);
   }
   }
 void calibrateSensor(my_TCS &sensor, const char* name) {
+  if (!scanColorSensorReady) {
+    Serial.println("TCS ยังไม่พร้อม: ยกเลิกการคาริเบรท");
+    return;
+  }
   Serial.print("\n=== Calibrate ");
   Serial.print(name);
   Serial.println(" ===");
   Serial.println("เตรียมแสงและวัตถุสีมาตรฐานให้คงที่ก่อนเริ่ม");
   sensor.startColorCalibration();
+  bool saturatedDuringCalibration = false;
+  auto checkSaturation = [&](const char* colorName) {
+    if (sensor.c < 21504u) return;
+    saturatedDuringCalibration = true;
+    Serial.print("TCS อิ่มตัวขณะคาริเบรท ");
+    Serial.print(colorName);
+    Serial.println("; ลดแสงหรือ gain แล้วคาริเบรทใหม่");
+  };
   Serial.println("  เริ่มคาริเบรท สีแดง --->>");
 
   // ฟังก์ชันย่อยสำหรับรอ Enter อย่างปลอดภัย
@@ -50,30 +69,36 @@ void calibrateSensor(my_TCS &sensor, const char* name) {
   Serial.println("   → Calibrate RED ");
   waitForEnter();
   sensor.calibrateRed();
+  checkSaturation("RED");
   Serial.println("   → Calibrate RED เสร็จ");
   Serial.println("   → Calibrate GREEN ");
   waitForEnter();
   sensor.calibrateGreen();
+  checkSaturation("GREEN");
   Serial.println("   → Calibrate GREEN เสร็จ");
   Serial.println("   → Calibrate BLUE ");
   waitForEnter();
   sensor.calibrateBlue();
+  checkSaturation("BLUE");
   Serial.println("   → Calibrate BLUE เสร็จ");
   Serial.println("   → Calibrate YELLOW ");
   waitForEnter();
   sensor.calibrateYellow();
+  checkSaturation("YELLOW");
   Serial.println("   → Calibrate YELLOW เสร็จ");
   Serial.println("   → Calibrate WHITE ");
   waitForEnter();
   sensor.calibrateWhite();
+  checkSaturation("WHITE");
   Serial.println("   → Calibrate WHITE เสร็จ");
    Serial.println("   → Calibrate BLACK  ");
   waitForEnter();
   sensor.calibrateBlack();
+  checkSaturation("BLACK");
   Serial.println("   → Calibrate BLACK เสร็จ");
 
-  if (!sensor.allColorsCalibrated()) {
-    Serial.println("อ่านบางสีไม่สำเร็จ: ไม่บันทึก EEPROM");
+  if (!sensor.allColorsCalibrated() || saturatedDuringCalibration) {
+    Serial.println("อ่านบางสีไม่สำเร็จหรือ TCS อิ่มตัว: ไม่บันทึก EEPROM");
     sensor.loadColorCalibration();
     return;
   }

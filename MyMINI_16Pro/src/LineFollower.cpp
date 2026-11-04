@@ -2355,7 +2355,7 @@ void runLine(int sl, int sr, float kp, bool distanceMode,
       (!sensorMode || exitSensor == secondExitSensor ||
        !(isFrontExit && secondExitSensor >= f0 && secondExitSensor <= f15) &&
        !(isRearExit && secondExitSensor >= b0 && secondExitSensor <= b15) &&
-       !(!reverseDirection && (isCenterLeftExit || isCenterRightExit) &&
+       !((isCenterLeftExit || isCenterRightExit) &&
          (secondExitSensor == cl || secondExitSensor == cr)))) {
     stopLineWithError(reverseDirection, F("INVALID_SENSOR_PAIR"), stopPull);
     return;
@@ -2368,7 +2368,7 @@ void runLine(int sl, int sr, float kp, bool distanceMode,
   uint8_t centerChannel = 0;
   // Every sensor-ended f_line counts black from the first fresh frame,
   // including after any turn. Only b_line retains white-release arming.
-  bool armed = requireBothExitSensors || (!reverseDirection && sensorMode);
+  bool armed = !reverseDirection && sensorMode;
   uint8_t consecutiveWhiteSamples = 0;
   bool pairBlackHistory[3] = {false, false, false};
   uint8_t pairHistoryIndex = 0;
@@ -3607,6 +3607,10 @@ bool set_line_distance_scale(float scale) {
   return true;
 }
 
+float get_line_distance_scale() {
+  return lineDistanceScale;
+}
+
 bool set_line_decel_ramp_cm(int distanceCmTimes100) {
   if (distanceCmTimes100 < 0) return false;
   // One integer unit is 0.01 cm, or 0.1 mm.
@@ -3723,6 +3727,19 @@ void b_line(int sl, int sr, float kp, LineExitSensor exitSensor,
   }
   runLine(sl, sr, kp, false, 0.0f, exitSensor, stopPull, true,
           TravelDirection::backward, continuousEntry);
+}
+
+void b_line(int sl, int sr, float kp, LineExitPair exitSensors,
+             uint8_t stopPull) {
+  ResetLinePositionOnReturn resetPosition;
+  const bool continuousEntry = previousLineCommandContinuous;
+  clearLastFLineState(LastMotionType::bLine);
+  if (sl < 0 || sr < 0 || sl > 100 || sr > 100) {
+    stopLineWithError(true, F("INVALID_ARGUMENT"), stopPull);
+    return;
+  }
+  runLine(sl, sr, kp, false, 0.0f, exitSensors.first, stopPull, true,
+          TravelDirection::backward, continuousEntry, true, exitSensors.second);
 }
 
 void b_line(int sl, int sr, float kp, float distanceCm,
