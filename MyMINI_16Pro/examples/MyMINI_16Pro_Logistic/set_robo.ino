@@ -38,21 +38,21 @@ void robot_setup()
     set_turn_line_search(80, 100);     // turn(): หมุนเร็ว 100 ms แล้วจำกัดสปีดค้นหาเส้นที่ 60
 
     set_line_ramp_start_speed(0);       // สปีดเริ่ม f_line/b_line เมื่อสปีดที่สั่งตั้งแต่ 40
-    set_line_ramp_ms(400);              // เวลาไล่ถึงสปีดที่สั่ง (ms); 0=ไม่ไล่สปีด
-    set_line_decel_ramp_cm(100);        // ชะลอก่อนครบระยะ 1.00 ซม.; 100=1.00 ซม., 0=ปิด
-    set_line_pid_tuning(0.0155f);       // Kd ของ f_line/b_line; Kp ใช้ค่าที่ส่งในคำสั่ง
+    set_line_ramp_ms(150);              // เวลาไล่ถึงสปีดที่สั่ง (ms); 0=ไม่ไล่สปีด
+    set_line_decel_ramp_cm(0);        // ชะลอก่อนครบระยะ 1.00 ซม.; 100=1.00 ซม., 0=ปิด
+    set_line_pid_tuning(0.020f);       // Kd ของ f_line/b_line; Kp ใช้ค่าที่ส่งในคำสั่ง
     set_gyro_kd(0.00850f, 0.0125f);    // Kd ของ fw_gyro, bw_gyro ตามลำดับ
     set_rotate_fallback(300, 550, 50); // ใช้เฉพาะ rotate_spin/pivot เมื่อ gyro ใช้ไม่ได้; turn_gyro จะหยุดพร้อมแจ้งข้อผิดพลาด
     set_turn_approach(20, 20, 25);     // สปีดเข้าหาเส้นหลังจบด้วยเซนเซอร์/ระยะทาง, กำลังเบรกสวน
     set_turn_center_brake(25, 30, 25, 30);  // tcl/tcr: เบรกสวนหลังเดินหน้า 25/10 ms, หลังถอย 20/60 ms
 
     // กำลังล้อขณะหมุน: (ซ้าย, ขวา) เป็นร้อยละของสปีดที่สั่ง; ค่าลบคือถอย
-    set_turn_motor(TurnMode::fl, -14, 100);   // fl: ซ้ายถอยเบา ขวาเดินหน้า
-    set_turn_motor(TurnMode::fr, 100, -14);   // fr: ซ้ายเดินหน้า ขวาถอยเบา
-    set_turn_motor(TurnMode::cl, -100, 100); // cl: หมุนซ้ายอยู่กับที่
-    set_turn_motor(TurnMode::cr, 100, -100); // cr: หมุนขวาอยู่กับที่
-    set_turn_motor(TurnMode::l, -100, 100);  // l: หมุนซ้ายอยู่กับที่
-    set_turn_motor(TurnMode::r, 100, -100);  // r: หมุนขวาอยู่กับที่
+    set_turn_motor(TurnMode::fl, -20, 90);   // fl: ซ้ายถอยเบา ขวาเดินหน้า
+    set_turn_motor(TurnMode::fr, 90, -20);   // fr: ซ้ายเดินหน้า ขวาถอยเบา
+    set_turn_motor(TurnMode::cl, -70, 70); // cl: หมุนซ้ายอยู่กับที่
+    set_turn_motor(TurnMode::cr, 70, -70); // cr: หมุนขวาอยู่กับที่
+    set_turn_motor(TurnMode::l, -70, 70);  // l: หมุนซ้ายอยู่กับที่
+    set_turn_motor(TurnMode::r, 70, -70);  // r: หมุนขวาอยู่กับที่
   }
 
 bool gyro_mini() {

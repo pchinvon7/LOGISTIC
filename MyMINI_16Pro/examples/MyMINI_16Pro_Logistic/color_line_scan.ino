@@ -24,7 +24,7 @@ constexpr bool kWhiteFixedLast = false; // Use true only when WHITE is fixed at 
 constexpr float kScanKi = 0.03f;
 constexpr uint32_t kTcsIntegrationMs = 50; // Configured in color.ino.
 constexpr uint32_t kColorPollMs = 30; // Poll between sensor conversions to catch short bands.
-constexpr uint32_t kFirstBandSampleMs = 60; // Keep stationary samples independent.
+constexpr uint32_t kStartFloorSampleMs = 60; // Start about 2 cm before band 1.
 constexpr uint32_t kMinBandDwellMs = 60; // At least two 50 ms sensor conversions.
 constexpr uint8_t kMinBandSamples = 3;
 constexpr uint32_t kColorGapToleranceMs = 75; // Allow one unknown poll within a band.
@@ -41,8 +41,9 @@ constexpr float kRecommendedMaxCmPerSec =
 // Old 101 ms / 16x readings saturated at C=44032. These are initial estimates
 // for 50 ms / 4x (~1/8 exposure); tune from new stationary C measurements.
 constexpr uint16_t kWhiteClearMin = 4000;
-// On-track samples: BLACK C=864..1292, GREEN as low as C=1508.
-constexpr uint16_t kBlackClearMax = 1400;
+// Swapped-band logs include BLACK C=1493..1532. Check chroma first so a
+// similarly dark BLUE or GREEN band is not swallowed by this threshold.
+constexpr uint16_t kBlackClearMax = 2000;
 constexpr uint16_t kSaturatedClear = 21504; // (256 - 0xEB) * 1024.
 constexpr uint32_t kLineGapTimeoutMs = 1300;
 constexpr uint32_t kAlignTimeoutMs = 3500;
@@ -214,7 +215,10 @@ bool inferOrderFromWindows(const ColorWindow* observed, uint8_t observedCount,
   if (count < 5) return false;
   GeometryResult result = {1000.0f, 1000.0f, 0.0f, 255, {}};
   uint8_t picks[5] = {};
-  searchGeometry(windows, count, first == 4, 0, 0, 0, picks, result);
+  // Starting before the first band leaves its color unknown. WHITE may still
+  // occupy band 1, inferred when the first visible band is about one pitch out.
+  searchGeometry(windows, count, first == 4 || first < 0,
+                 0, 0, 0, picks, result);
   if (result.whiteSlot == 255 || result.bestScore > 0.20f ||
       result.secondScore < result.bestScore + 0.05f) {
     Serial.print(F("SCAN: geometry unresolved best="));
@@ -263,39 +267,37 @@ int8_t scanColorFromTcs(uint16_t whiteClearReference = 0) {
   const uint32_t r = tcs0.r;
   const uint32_t g = tcs0.g;
   const uint32_t b = tcs0.b;
+  const uint32_t c = tcs0.c;
+  // The bright floor was reported as GREEN with G/R=1.32. A real green
+  // stripe had G/R=3.06 and G/B=1.99. Check chroma even at low brightness,
+  // before applying the BLACK clear threshold.
+  if (c > 200u && g * 100u >= r * 155u &&
+      g * 100u >= b * 125u) return 1;
+  // Yellow remains yellow even when its clear value falls below the bright
+  // floor reference. On this course its blue share is much smaller than the
+  // floor's; a fixed percentage-of-floor cutoff misses swapped placements.
+  if (c >= 2000u && r * 100u >= g * 75u &&
+      r * 100u <= g * 130u && b * 100u <= (r + g) * 25u) return 2;
   // Red can be darker than BLACK in the clear channel on this course.
   // At C=788..1013 its R channel was 3-4 times G/B; never label that BLACK.
   const uint32_t redMaxClear = whiteClearReference >= 8000u ?
       static_cast<uint32_t>(whiteClearReference) * 55u / 100u : 10000u;
-  if (tcs0.c > 200u && tcs0.c <= redMaxClear &&
+  if (c > 200u && c <= redMaxClear &&
       r * 100u >= g * 118u && r * 100u >= b * 150u) return 0;
-  if (tcs0.c <= kBlackClearMax) return 5;
-  // A moving 2 cm black stripe can blend with the bright floor during the
-  // 50 ms integration. Its neutral RGB ratios stay floor-like, but C drops.
-  if (whiteClearReference >= 8000u &&
-      static_cast<uint32_t>(tcs0.c) * 100u <=
-          static_cast<uint32_t>(whiteClearReference) * 35u &&
-      r * 100u >= g * 80u && r * 100u <= g * 115u &&
-      b * 100u >= g * 60u && b * 100u <= g * 90u) return 5;
+  // BLUE may have C below the BLACK threshold; decide by chroma first.
+  if (c > 200u && b * 100u >= r * 108u &&
+      b * 100u >= g * 90u) return 3;
+  if (c <= kBlackClearMax) return 5;
   const int8_t named = colorIndex(tcs0.getColor());
-  if (named >= 0 && named < 4) {
-    // Yellow and the white floor shared saturated C. A dim edge at 37% of
-    // the floor reference was a false YELLOW near the WHITE band; the real
-    // YELLOW windows on this course were at least about 43% of that floor.
-    // Also reject a loose fallback when blue is too strong for yellow.
-    if (named != 2) return named;
-    const uint32_t yellowMinClear = whiteClearReference >= 8000u ?
-        static_cast<uint32_t>(whiteClearReference) * 42u / 100u : 5000u;
-    if (tcs0.c >= yellowMinClear &&
-        tcs0.b <= 0.40f * (tcs0.r + tcs0.g)) return named;
-  }
+  // Keep the calibrated RED/BLUE result. GREEN/YELLOW require the chroma
+  // checks above because their calibrated fallback also matched the floor.
+  if (named == 0 || named == 3) return named;
   // A mixed edge frame may be UNKNOWN to the calibrated classifier while its
   // strongest channel still identifies the band. Check chroma before using
   // clear brightness as a WHITE/floor fallback (BLUE C=5306..5815 on track).
   if (r * 100u >= g * 125u && r * 100u >= b * 125u) return 0;
-  if (g * 100u >= r * 135u && g * 100u >= b * 112u) return 1;
   if (b * 100u >= r * 108u && b * 100u >= g * 90u) return 3;
-  if (tcs0.c >= kWhiteClearMin) return 4;
+  if (c >= kWhiteClearMin) return 4;
   return -1;
 }
 
@@ -358,32 +360,6 @@ void driveScanPid(float position, float& previousError, float& integral,
   motor(left, right);
   appliedLeft = left;
   appliedRight = right;
-}
-
-// Read while stationary over the middle of band 1. A WHITE reading is only a
-// candidate; its band position is checked again after five visible colors.
-bool readFirstBand(int8_t& first) {
-  first = -1;
-  uint8_t stable = 0;
-  bool saturationReported = false;
-  for (uint8_t attempt = 0; attempt < 8; ++attempt) {
-    delay(kFirstBandSampleMs);
-    if (!tcs0.readFast()) continue;
-    const bool saturated = tcs0.c >= kSaturatedClear;
-    if (saturated && !saturationReported) {
-      saturationReported = true;
-      Serial.println(F("SCAN: first-band sample saturated; WHITE is only a candidate"));
-    }
-    const int8_t sample = saturated ? 4 : scanColorFromTcs();
-    if (sample < 0) continue;
-    if (sample == first) ++stable;
-    else {
-      first = sample;
-      stable = 1;
-    }
-    if (stable >= 2) return true;
-  }
-  return false;
 }
 
 // Decide WHITE only after all five visible colors have been observed. Try
@@ -491,15 +467,15 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
 
   motor(1, 1);
   int8_t first = -1;
-  if (!readFirstBand(first)) {
-    Serial.println(F("SCAN: cannot read band 1; place TCS at its center"));
-    return false;
+  uint16_t whiteClearReference = 0;
+  for (uint8_t attempt = 0; attempt < 2; ++attempt) {
+    delay(kStartFloorSampleMs);
+    if (tcs0.readFast() && tcs0.c > whiteClearReference)
+      whiteClearReference = tcs0.c;
   }
-  const bool firstWhiteCandidate = first == 4;
-  uint16_t whiteClearReference = firstWhiteCandidate ? tcs0.c : 0u;
-  if (!firstWhiteCandidate) {
-    scannedColorOrder[0] = static_cast<uint8_t>(first);
-    scannedColorCount = 1;
+  if (whiteClearReference == 0) {
+    Serial.println(F("SCAN: cannot read starting floor"));
+    return false;
   }
   uint32_t startMs = millis();
   uint32_t lastLineMs = startMs;
@@ -510,8 +486,8 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
   float integral = 0.0f;
   uint8_t alignedFrames = 0;
   bool aligned = false;
-  bool armed = false;
-  uint8_t seenMask = firstWhiteCandidate ? 0u : static_cast<uint8_t>(1u << first);
+  bool armed = true; // Band 1 is only about 2 cm from the scan start.
+  uint8_t seenMask = 0u;
   uint8_t duplicateLoggedMask = 0u;
   ColorWindow colorWindows[kMaxColorWindows] = {};
   TailColorSample earlySamples[kEarlySampleCount] = {};
@@ -565,17 +541,11 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
   int appliedLeft = 0;
   int appliedRight = 0;
   uint32_t observedBandMs[5] = {};
-  if (!firstWhiteCandidate) observedBandMs[0] = startMs;
   bool speedWarningPrinted = false;
 
-  Serial.print(F("SCAN: band 1 sample = "));
-  Serial.print(kColorNames[first]);
-  Serial.print(F(" C="));
-  Serial.println(tcs0.c);
-  if (firstWhiteCandidate)
-    Serial.println(kWhiteFixedLast ?
-        F("SCAN: initial WHITE may be floor; WHITE is fixed at band 6") :
-        F("SCAN: WHITE at band 1 is only a candidate until all five colors are seen"));
+  Serial.print(F("SCAN: starting floor sample (not band 1) C="));
+  Serial.println(whiteClearReference);
+  Serial.println(F("SCAN: TCS starts about 2 cm before band 1"));
   Serial.print(F("SCAN: motor L/R="));
   Serial.print(leftSpeed);
   Serial.print('/');
@@ -601,7 +571,6 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
   previousPidUs = micros();
   previousDistanceUs = previousPidUs;
   previousBandMs = startMs;
-  if (!firstWhiteCandidate) observedBandMs[0] = startMs;
   while (true) {
     const uint32_t nowMs = millis();
     const uint32_t nowUs = micros();
@@ -852,7 +821,7 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
       scannedColorCount = 6;
       Serial.println(F("SCAN: WHITE fixed at band 6 after five visible colors"));
     } else if (!kWhiteFixedLast) {
-      Serial.println(F("SCAN: WHITE position unresolved; center TCS on band 1 before scanning"));
+      Serial.println(F("SCAN: WHITE position unresolved; check the 2 cm starting gap and color windows"));
     }
   }
   Serial.print(F("SCAN: "));

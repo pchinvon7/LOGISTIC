@@ -53,13 +53,14 @@ void setup()
       pinMode(1, INPUT_PULLUP);
       set_line_error_monitor(true);  
       servo(18, 50);
+      // servo(28, 10);
       griper_set();
       // Retry after the gripper setup if the ESP32 was still booting.
       sendColorBands(String("GREEN"));
 
-      // servo(28, 130);
+      servo(28, 10);
       
-      //calibrateSensor(tcs0, "TCS0 (I2C0)");
+      // calibrateSensor(tcs0, "TCS0 (I2C0)");
       wait_button();
       // wait_button() has already selected real gyro or estimated heading.
       // sendColorBands(String("GREEN"));
@@ -68,23 +69,28 @@ void setup()
        
       ////////////////////////////////////////////////////////////////////////////////////////---------------->>>>>>>>>>>>> 
      
-      servo(28, 10);
-      delay(200);
-      do{motor(20, 20);}while(readADC_F(0) > 500);
-      f_line(20, 20, 0.0f, 10.0f, 0); 
-      positoin_error = 70; 
-      f_line(20, 20, 0.25f, cl, 0);
-      positoin_error = 70; 
-      f_line(20, 20, 0.25f, b0, 5);
-      delay(200);
+      // servo(28, 10);
+      // delay(200);
+      // do{motor(20, 20);}while(readADC_F(0) > 500);
+      // f_line(20, 20, 0.0f, 8.0f, 0);
+      // positoin_error = 90;
+      // f_line(20, 20, 0.0f, cl, 0);
+      // positoin_error = 90;
+      // f_line(20, 20, 0.25f, b0, 5);
+      // motor(-10, -10);
+      // delay(200);
+      // motor(10, 10);
+      // delay(10);
+      // motor(1, 1);
+      // delay(500);
       start_robot();
-      delay(1000);
-      positoin_error = 70; 
-      f_line(40, 40, 0.5f, f0, 1);
-      turn(tcl, 40, f5,  10);
-      griper_set();
-      slide_up(200);
-      run();
+      // delay(1000);
+      // positoin_error = 90;
+      // f_line(40, 40, 0.5f, f0, 1);
+      // turn(tcl, 40, f5,  10);
+      // servo(28, 90);
+      // run();
+
 
       // griper_setF();
 
@@ -176,13 +182,13 @@ void loop()
   {    
     //Repeat a confirmed order so a restarted ESP32 display can recover.
 
-    if (millis() - lastColorSendMs >= 2000u) {
-      resendColorBandsIfEnabled();
-      lastColorSendMs = millis();
-    }
+    // if (millis() - lastColorSendMs >= 2000u) {
+    //   resendColorBandsIfEnabled();
+    //   lastColorSendMs = millis();
+    // }
 
     // Serial.println(readADC_F());
-  //read_color();
+  // read_color();
   //    //read_gyro();
   //    delay(30);
 

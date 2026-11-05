@@ -26,7 +26,7 @@ void set_can()
 void getCan()
   {
     _can_color = "";  // Never reuse the previous can's color after a failed read.
-    servo(18, 130);
+    servo(18, 140);
     delay(200);
    servo(28, 60);
    delay(300);
@@ -119,7 +119,7 @@ void getCan()
    }
     delay(200);
     servo(28, 90);
-    slide_up(700);
+    slide_up(300);
     delay(200);
     servo(28, 130);
   }
@@ -236,7 +236,7 @@ void slide_drop()
   {
     int i ;
     servo(28, 150);
-    for(i = 130; i > 115; i--)
+    for(i = 140; i > 120; i--)
       {
         servo(18, i);
         delay(15);
@@ -279,13 +279,12 @@ void getInFloor()
   }
 void griper_setF()
   {
-    servo(28, 10);
-    delay(200);
+    servo(28, 90);
     servo(18, 50);
 
-    f_line(40, 40, 0.4f, 30.0f, 1, 0);
-    do{servo(22, 180);Serial.println(digitalRead(1));delay(10);}while(digitalRead(1) == 0);
-    delay(50);
-    servo(22, 90);
-    servo(28, 90);
+    f_line(40, 40, 0.4f, 30.0f, 1, -300);
+    // do{servo(22, 180);Serial.println(digitalRead(1));delay(10);}while(digitalRead(1) == 0);
+    // delay(50);
+    // servo(22, 90);
+    // servo(28, 90);
   }
