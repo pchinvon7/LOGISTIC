@@ -211,7 +211,9 @@ void loop()
 
 void start_robot()
   {
-    colorScanComplete = scanSixColorBands(10, 10, 0.150f, 0.01f, 55.0f);
+    // Scan slowly enough to get two complete 50 ms TCS readings from each
+    // 2 cm band; faster motion was skipping the middle bands on this course.
+    colorScanComplete = scanSixColorBands(8, 8, 0.150f, 0.01f, 55.0f);
        //                  L   R      Kp       Kd      max cm from band 1
        if (colorScanComplete) {
          publishScannedColors();

@@ -23,10 +23,12 @@ constexpr float kFirstToLastCenterCm = 5.0f * kBandPitchCm;
 constexpr bool kWhiteFixedLast = false; // Use true only when WHITE is fixed at band 6.
 constexpr float kScanKi = 0.03f;
 constexpr uint32_t kTcsIntegrationMs = 50; // Configured in color.ino.
-constexpr uint32_t kColorPollMs = 30; // Poll between sensor conversions to catch short bands.
+// The TCS integration time is 50 ms.  Read once per completed conversion so
+// samples from the edge of a 2 cm band are not counted as mixed/old frames.
+constexpr uint32_t kColorPollMs = 50;
 constexpr uint32_t kStartFloorSampleMs = 60; // Start about 2 cm before band 1.
-constexpr uint32_t kMinBandDwellMs = 60; // At least two 50 ms sensor conversions.
-constexpr uint8_t kMinBandSamples = 3;
+constexpr uint32_t kMinBandDwellMs = 50; // Two fresh 50 ms conversions.
+constexpr uint8_t kMinBandSamples = 2;
 constexpr uint32_t kColorGapToleranceMs = 75; // Allow one unknown poll within a band.
 constexpr uint8_t kMaxColorWindows = 24;
 constexpr uint8_t kEarlySampleCount = 80;
@@ -289,9 +291,12 @@ int8_t scanColorFromTcs(uint16_t whiteClearReference = 0) {
       b * 100u >= g * 90u) return 3;
   if (c <= kBlackClearMax) return 5;
   const int8_t named = colorIndex(tcs0.getColor());
-  // Keep the calibrated RED/BLUE result. GREEN/YELLOW require the chroma
-  // checks above because their calibrated fallback also matched the floor.
+  // Keep the calibrated RED/BLUE result.  GREEN can match the bright floor,
+  // but a calibrated YELLOW reading with low blue is useful when a dim yellow
+  // band misses the stricter raw-channel rule above.
   if (named == 0 || named == 3) return named;
+  if (named == 2 && c >= 2000u &&
+      b * 100u <= (r + g) * 45u) return 2;
   // A mixed edge frame may be UNKNOWN to the calibrated classifier while its
   // strongest channel still identifies the band. Check chroma before using
   // clear brightness as a WHITE/floor fallback (BLUE C=5306..5815 on track).
@@ -541,6 +546,7 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
   int appliedLeft = 0;
   int appliedRight = 0;
   uint32_t observedBandMs[5] = {};
+  float observedBandDistanceMm[5] = {};
   bool speedWarningPrinted = false;
 
   Serial.print(F("SCAN: starting floor sample (not band 1) C="));
@@ -722,6 +728,8 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
     seenMask |= bit;
     observedBandMs[scannedColorCount] =
         candidateStartMs + (nowMs - candidateStartMs) / 2;
+    observedBandDistanceMm[scannedColorCount] =
+        (candidateStartMm + candidateLastMm) * 0.5f;
     scannedColorOrder[scannedColorCount++] = static_cast<uint8_t>(band);
     Serial.print(F("SCAN: visible reading "));
     Serial.print(scannedColorCount);
@@ -820,8 +828,39 @@ bool scanSixColorBands(int leftSpeed, int rightSpeed, float kp, float kd,
       scannedColorOrder[5] = 4;
       scannedColorCount = 6;
       Serial.println(F("SCAN: WHITE fixed at band 6 after five visible colors"));
+    } else if (seenMask == 0x2f) {
+      // WHITE has the same reading as the floor, so five correctly detected
+      // non-WHITE bands are sufficient.  The geometry solver above is kept as
+      // the preferred method because it uses every color window.  On a real
+      // course, however, small steering corrections can make its distance
+      // confidence test ambiguous.  Fall back to the accepted-band timestamps:
+      // a WHITE first band leaves the first colored window about one pitch
+      // farther away; otherwise the missing band creates one 14 cm interval
+      // between colored bands.  Use distance, not time, to choose the
+      // WHITE-first case: the first interval is slower while the robot starts.
+      uint8_t whiteSlot = 255;
+      const bool whiteMayBeFirst =
+          observedBandDistanceMm[0] >= kBandPitchCm * 10.0f * 0.75f;
+      bool recovered = inferWhiteSlotFromSpacing(observedBandMs, startMs,
+                                                  whiteMayBeFirst, whiteSlot);
+      if (!recovered)
+        recovered = inferWhiteSlotFromSpacing(observedBandMs, startMs,
+                                               !whiteMayBeFirst, whiteSlot);
+      if (recovered) {
+        uint8_t visible = 0;
+        for (uint8_t slot = 0; slot < 6; ++slot)
+          reconstructedOrder[slot] = slot == whiteSlot ? 4 :
+              scannedColorOrder[visible++];
+        for (uint8_t i = 0; i < 6; ++i)
+          scannedColorOrder[i] = reconstructedOrder[i];
+        scannedColorCount = 6;
+        Serial.print(F("SCAN: WHITE recovered from timing at band "));
+        Serial.println(whiteSlot + 1);
+      } else {
+        Serial.println(F("SCAN: WHITE position unresolved from color windows and timing"));
+      }
     } else if (!kWhiteFixedLast) {
-      Serial.println(F("SCAN: WHITE position unresolved; check the 2 cm starting gap and color windows"));
+      Serial.println(F("SCAN: need five distinct non-WHITE colors; check color windows"));
     }
   }
   Serial.print(F("SCAN: "));
