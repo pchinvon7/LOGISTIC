@@ -26,15 +26,16 @@ void set_can()
 void getCan()
   {
     _can_color = "";  // Never reuse the previous can's color after a failed read.
+    // The can faces the TCS at these confirmed arm angles.
+    f_line(5, 5, 0.4f, 2, 10);
     servo(18, 140);
     delay(200);
-   servo(28, 60);
+   servo(28, 70);
    delay(300);
    static const char* const names[6] = {
        "RED", "GREEN", "YELLOW", "BLUE", "WHITE", "BLACK"};
-   // Starting points from the TCS scan at 50 ms / 4x: black C=864..1292,
-   // green starts at C=1508. Verify these against stationary can readings.
-   const uint16_t blackMaxClear = 1400;
+   // Reject bright neutral backgrounds that getColor() may call GREEN.
+   const uint16_t blackMaxClear = 2000;
    const uint16_t whiteMinClear = 4000;
    uint8_t votes[6] = {};
    uint8_t readFailures = 0;
@@ -47,31 +48,31 @@ void getCan()
        continue;
      }
      const String sensorColor = tcs0.getColor();
-     String measured = sensorColor;
-     // Keep calibrated chromatic labels first. getColor() can return WHITE
-     // early, so recover strongly colored readings from raw channels.
-     if (sensorColor != "RED" && sensorColor != "GREEN" &&
-         sensorColor != "BLUE" && sensorColor != "YELLOW") {
-       const uint32_t red = tcs0.r;
-       const uint32_t green = tcs0.g;
-       const uint32_t blue = tcs0.b;
-       if (tcs0.c > 200 && red * 100 >= green * 118 &&
-           red * 100 >= blue * 150) {
-         measured = "RED";
-       } else if (tcs0.c > 200 && green * 100 >= red * 135 &&
-                  green * 100 >= blue * 112) {
-         measured = "GREEN";
-       } else if (tcs0.c > 200 && blue * 100 >= red * 108 &&
-                  blue * 100 >= green * 90) {
-         measured = "BLUE";
-       } else if (tcs0.c <= blackMaxClear) {
-         measured = "BLACK";
-       } else if (sensorColor == "WHITE" &&
-                  tcs0.c >= whiteMinClear) {
-         measured = "WHITE";
-       } else {
-         measured = "UNKNOWN";
-       }
+     const uint32_t red = tcs0.r;
+     const uint32_t green = tcs0.g;
+     const uint32_t blue = tcs0.b;
+     String measured = "UNKNOWN";
+     // A yellow can can exceed the clear-value limit in getColor(). Its
+     // low blue share distinguishes it from the bright floor in the log.
+     if (tcs0.c >= 2000 && red * 100 >= green * 75 &&
+         red * 100 <= green * 130 &&
+         blue * 100 <= (red + green) * 25) {
+       measured = "YELLOW";
+     } else if (tcs0.c > 200 && red * 100 >= green * 118 &&
+                red * 100 >= blue * 150) {
+       measured = "RED";
+     } else if (tcs0.c > 200 && green * 100 >= red * 155 &&
+                green * 100 >= blue * 125) {
+       measured = "GREEN";
+     } else if (tcs0.c > 200 && blue * 100 >= red * 108 &&
+                blue * 100 >= green * 90) {
+       measured = "BLUE";
+     } else if (tcs0.c <= blackMaxClear) {
+       measured = "BLACK";
+     } else if (tcs0.c >= whiteMinClear) {
+       // A white can can be returned as GREEN by the calibrated fallback.
+       // With the can in the reading position, bright neutral RGB is WHITE.
+       measured = "WHITE";
      }
      Serial.print(F("CAN: sample "));
      Serial.print(sample + 1);
@@ -121,24 +122,122 @@ void getCan()
     servo(28, 90);
     slide_up(300);
     delay(200);
-    servo(28, 130);
+    servo(28, 140);
+    b_line(10, 10, 0.4f, 3, 10);
   }
-
 void check_bic()
   {
     _bic_color = "";  // Never reuse the previous can's color after a failed read.
-  // slide_up(200);
+    slide_up(200);
+   servo(28, 50);
+   delay(200);
+   f_line(10, 10, 0.5f, 5, 1);
+   delay(300);
+   static const char* const names[6] = {
+       "RED", "GREEN", "YELLOW", "BLUE", "WHITE", "BLACK"};
+   // Reject bright neutral backgrounds that getColor() may call GREEN.
+   const uint16_t blackMaxClear = 2000;
+   const uint16_t whiteMinClear = 4000;
+   uint8_t votes[6] = {};
+   uint8_t readFailures = 0;
+   // TCS integration is 50 ms. Space reads so repeated votes come from
+   // separate conversions while the can is held in front of the sensor.
+   for (uint8_t sample = 0; sample < 10; ++sample) {
+     delay(30);
+     if (!tcs0.readFast()) {
+       ++readFailures;
+       continue;
+     }
+     const String sensorColor = tcs0.getColor();
+     const uint32_t red = tcs0.r;
+     const uint32_t green = tcs0.g;
+     const uint32_t blue = tcs0.b;
+     String measured = "UNKNOWN";
+     // A yellow can can exceed the clear-value limit in getColor(). Its
+     // low blue share distinguishes it from the bright floor in the log.
+     if (tcs0.c >= 2000 && red * 100 >= green * 75 &&
+         red * 100 <= green * 130 &&
+         blue * 100 <= (red + green) * 25) {
+       measured = "YELLOW";
+     } else if (tcs0.c > 200 && red * 100 >= green * 118 &&
+                red * 100 >= blue * 150) {
+       measured = "RED";
+     } else if (tcs0.c > 200 && green * 100 >= red * 155 &&
+                green * 100 >= blue * 125) {
+       measured = "GREEN";
+     } else if (tcs0.c > 200 && blue * 100 >= red * 108 &&
+                blue * 100 >= green * 90) {
+       measured = "BLUE";
+     } else if (tcs0.c <= blackMaxClear) {
+       measured = "BLACK";
+     } else if (tcs0.c >= whiteMinClear) {
+       // A white can can be returned as GREEN by the calibrated fallback.
+       // With the can in the reading position, bright neutral RGB is WHITE.
+       measured = "WHITE";
+     }
+     Serial.print(F("CAN: sample "));
+     Serial.print(sample + 1);
+     Serial.print(F(" = "));
+     Serial.print(measured);
+     if (measured != sensorColor) {
+       Serial.print(F(" (sensor="));
+       Serial.print(sensorColor);
+       Serial.print(')');
+     }
+     Serial.print(F(" C="));
+     Serial.print(tcs0.c);
+     Serial.print(F(" R="));
+     Serial.print(tcs0.r);
+     Serial.print(F(" G="));
+     Serial.print(tcs0.g);
+     Serial.print(F(" B="));
+     Serial.println(tcs0.b);
+     for (uint8_t color = 0; color < 6; ++color) {
+       if (measured == names[color]) {
+         ++votes[color];
+         break;
+       }
+     }
+   }
+   uint8_t bestVotes = 0;
+   int8_t bestColor = -1;
+   for (uint8_t color = 0; color < 6; ++color) {
+     if (votes[color] > bestVotes) {
+       bestVotes = votes[color];
+       bestColor = color;
+     }
+   }
+   if (bestColor >= 0 && bestVotes >= 3) {
+     _bic_color = names[bestColor];
+     Serial.print(F("CAN: color = "));
+     Serial.println(_bic_color);
+     if (!sendColorBands(_bic_color))
+       Serial.println(F("COLOR I2C: can color send failed"));
+   } else {
+     Serial.print(F("CAN: color uncertain; best votes="));
+     Serial.print(bestVotes);
+     Serial.print(F("/5, read failures="));
+     Serial.println(readFailures);
+   }
+    delay(200);
+    servo(28, 90);
+    delay(200);
+    servo(28, 140);
+  }
+void _check_bic()
+  {
+    _bic_color = "";  // Never reuse the previous can's color after a failed read.
+    slide_up(200);
    servo(28, 60);
    delay(200);
-   f_line(10, 10, 0.5f, 3,    1);
-   servo(28, 50);
+   f_line(10, 10, 0.5f, 5, 1);
    delay(300);
    static const char* const names[6] = {
        "RED", "GREEN", "YELLOW", "BLUE", "WHITE", "BLACK"};
    // Starting points from the TCS scan at 50 ms / 4x: black C=864..1292,
    // green starts at C=1508. Verify these against stationary can readings.
    const uint16_t blackMaxClear = 1400;
-   const uint16_t whiteMinClear = 3500;
+   const uint16_t whiteMinClear = 4000;
    uint8_t votes[6] = {};
    uint8_t readFailures = 0;
    // TCS integration is 50 ms. Space reads so repeated votes come from
@@ -223,7 +322,7 @@ void check_bic()
     delay(200);
     servo(28, 90);
     delay(200);
-    servo(28, 130);
+    servo(28, 140);
   }
 void drop()
   {
@@ -265,7 +364,7 @@ void setGetFloor()
   }
 void GetFloor()
   {
-    servo(18, 140);
+    servo(18, 145);
     delay(200);
     slide_up(200);
   }
@@ -273,7 +372,7 @@ void getInFloor()
   {
     slide_down(200);
     delay(200);
-    servo(18, 140);
+    servo(18, 145);
     delay(200);
     slide_up(700);
   }
@@ -282,7 +381,7 @@ void griper_setF()
     servo(28, 90);
     servo(18, 50);
 
-    f_line(40, 40, 0.4f, 30.0f, 1, -300);
+    f_line(30, 30, 0.4f, 20.0f, 1, -300);
     // do{servo(22, 180);Serial.println(digitalRead(1));delay(10);}while(digitalRead(1) == 0);
     // delay(50);
     // servo(22, 90);

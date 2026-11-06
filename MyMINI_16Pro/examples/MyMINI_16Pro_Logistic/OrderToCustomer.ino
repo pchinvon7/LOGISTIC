@@ -2,10 +2,10 @@ void GC1()
   {
     f_line(50, 50, 0.4f, cl, 0);
     f_line(50, 50, 0.4f, f0, 0);
-    f_line(40, 40, 0.4f, f0, 1); turn(tcl, 40, f4, 10);
+    f_line(40, 40, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
-         b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f4, 10);
+         b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f5, 10);
         f_line(50, 50, 0.4f, f0, 0);
         f_line(30, 30, 0.4f, cl, 10);
         griper_setF();
@@ -31,10 +31,10 @@ void GC2()
 void GC3()
   {
     f_line(50, 50, 0.4f, cl, 0);
-    f_line(50, 50, 0.4f, f0, 1); turn(tcl, 40, f4, 10);
+    f_line(50, 50, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
-        b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f4, 10);
+        b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f5, 10);
         griper_setF();
     
     C3 = 1;
@@ -52,10 +52,10 @@ void GC4()
   }
 void GC5()
   {
-    f_line(30, 30, 0.4f, cl, 1); turn(tcl, 40, f4, 10);
+    f_line(30, 30, 0.4f, cl, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
-        b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f4, 10);
+        b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f5, 10);
         griper_set();
       
     C5 = 1;

@@ -6,9 +6,9 @@ void reOrder1()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(30, 30, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -18,7 +18,7 @@ void reOrder1()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C1 = 0;
   }
 void reOrder2()
@@ -29,9 +29,9 @@ void reOrder2()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(30, 30, 0.4f, f15, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -41,7 +41,7 @@ void reOrder2()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C2 = 0;
   }
 void reOrder3()
@@ -51,9 +51,9 @@ void reOrder3()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(30, 30, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -62,7 +62,7 @@ void reOrder3()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C3 = 0;
   }
 void reOrder4()
@@ -72,9 +72,9 @@ void reOrder4()
     f_line(50, 50, 0.4f, f0, 0);
     f_line(30, 30, 0.4f, f15, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -83,7 +83,7 @@ void reOrder4()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C4 = 0;
   }
 void reOrder5()
@@ -92,9 +92,9 @@ void reOrder5()
     servo(28, 130);
     f_line(30, 30, 0.4f, f0, 1); turn(tcl, 40, f5, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -102,7 +102,7 @@ void reOrder5()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C5 = 0;
   }
 void reOrder6()
@@ -111,9 +111,9 @@ void reOrder6()
     servo(28, 140);
     f_line(30, 30, 0.4f, f15, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 7, 10);
-    slide_down(100);
+    slide_down(50);
     delay(200);
-    servo(18, 130);
+    servo(18, 145);
     delay(200);
     slide_up(800);
     delay(200);
@@ -121,7 +121,7 @@ void reOrder6()
     f_line(50, 50, 0.4f, cl, 10);
     // servo(28, 70);
     // slide_set();
-    servo(18, 130);
+    servo(18, 145);
     C6 = 0;
   }
 void check_re_order()

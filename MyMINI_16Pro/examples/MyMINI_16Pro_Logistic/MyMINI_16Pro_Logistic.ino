@@ -58,9 +58,9 @@ void setup()
       // Retry after the gripper setup if the ESP32 was still booting.
       sendColorBands(String("GREEN"));
 
-      servo(28, 10);
       
-      // calibrateSensor(tcs0, "TCS0 (I2C0)");
+      
+      // servo(28, 10); calibrateSensor(tcs0, "TCS0 (I2C0)");
       wait_button();
       // wait_button() has already selected real gyro or estimated heading.
       // sendColorBands(String("GREEN"));
@@ -69,27 +69,58 @@ void setup()
        
       ////////////////////////////////////////////////////////////////////////////////////////---------------->>>>>>>>>>>>> 
      
-      // servo(28, 10);
-      // delay(200);
-      // do{motor(20, 20);}while(readADC_F(0) > 500);
-      // f_line(20, 20, 0.0f, 8.0f, 0);
-      // positoin_error = 90;
-      // f_line(20, 20, 0.0f, cl, 0);
-      // positoin_error = 90;
-      // f_line(20, 20, 0.25f, b0, 5);
-      // motor(-10, -10);
-      // delay(200);
-      // motor(10, 10);
-      // delay(10);
-      // motor(1, 1);
-      // delay(500);
+      servo(28, 10);
+      delay(200);
+      do{motor(20, 20);}while(readADC_F(0) > 500);
+      f_line(20, 20, 0.0f, 8.0f, 0);
+      positoin_error = 90;
+      f_line(20, 20, 0.0f, cl, 0);
+      positoin_error = 90;
+      f_line(20, 20, 0.25f, b0, 5);
+      motor(-7, -7);
+      delay(200);
+      motor(7, 7);
+      delay(10);
+      motor(1, 1);
+      delay(1000);
       start_robot();
-      // delay(1000);
-      // positoin_error = 90;
-      // f_line(40, 40, 0.5f, f0, 1);
-      // turn(tcl, 40, f5,  10);
-      // servo(28, 90);
+      delay(1000);
+      positoin_error = 90;
+      f_line(40, 40, 0.5f, f0, 1);
+      turn(tcl, 40, f5,  10);
+      servo(28, 90);
+
+       if (colorScanComplete) {
+    run();
+  } else {
+    // Never begin collecting cans from an unknown colour-to-slot mapping.
+    // Reboot/restart after correcting the scan rather than guessing a bay.
+    Serial.println(F("MISSION: colour scan failed -- mission cancelled"));
+    motor(1, 1);
+  }
       // run();
+
+      wait_button();
+
+      Serial.print(_bic_color);
+
+      // check_bic();
+
+    // getCan();
+    // b_line(10, 10, 0.2f, 3, 20);
+    // turn(tr, 40, f11, 20);
+    // turn(tr, 40, f11, 20);
+    // f_line(30, 30, 0.4f, 20.0f, 1, 500);
+
+    //   f_line(30, 30, 0.4f, cl, 1); turn(tcr, 40, f11, 10);
+    // f_line(10, 10, 0.4f, 10, 10);
+    // slide_drop();
+    //      b_line(30, 30, 0.4f, cl&cr, 10); turn(tr, 40, f11, 10);
+    //      griper_set();
+
+      // getCan();
+      // f_line(30, 30, 0.4f, 25.0f, 1, 500);
+      // GC3();
 
 
       // griper_setF();
@@ -188,7 +219,7 @@ void loop()
     // }
 
     // Serial.println(readADC_F());
-  // read_color();
+  read_color();
   //    //read_gyro();
   //    delay(30);
 
@@ -211,7 +242,7 @@ void loop()
 
 void start_robot()
   {
-    colorScanComplete = scanSixColorBands(10, 10, 0.150f, 0.01f, 55.0f);
+    colorScanComplete = scanSixColorBands(7, 7, 0.100f, 0.01f, 55.0f);
        //                  L   R      Kp       Kd      max cm from band 1
        if (colorScanComplete) {
          publishScannedColors();

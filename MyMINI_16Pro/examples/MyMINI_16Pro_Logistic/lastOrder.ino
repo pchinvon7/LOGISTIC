@@ -1,6 +1,6 @@
 void LGC1()
   {
-    f_line(50, 50, 0.4f, cl, 0);
+    f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f0, 0);
     f_line(40, 40, 0.4f, f0, 1); turn(tcl, 40, f4, 10);
     f_line(10, 10, 0.4f, 10, 10);
@@ -20,7 +20,7 @@ void LGC1()
   }
 void LGC2()
   {
-    f_line(50, 50, 0.4f, cl, 0);
+    f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f15, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 10, 10);
@@ -40,7 +40,7 @@ void LGC2()
   }
 void LGC3()
   {
-    f_line(50, 50, 0.4f, cl, 0);
+    f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f0, 1); turn(tcl, 40, f4, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
@@ -60,7 +60,7 @@ void LGC3()
   }
 void LGC4()
   {
-    f_line(50, 50, 0.4f, cl, 0);
+    f_line(50, 50, 0.4f, f0, 0);
     f_line(50, 50, 0.4f, f15, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
@@ -80,7 +80,7 @@ void LGC4()
   }
 void LGC5()
   {
-    f_line(30, 30, 0.4f, cl, 1); turn(tcl, 40, f4, 10);
+    f_line(30, 30, 0.4f, f0, 1); turn(tcl, 40, f4, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
         b_line(30, 30, 0.4f, cl&cr, 10); turn(tr, 40, f11, 10);
@@ -100,7 +100,7 @@ void LGC5()
   }
 void LGC6()
   {
-    f_line(30, 30, 0.4f, cl, 1); turn(tcr, 40, f11, 10);
+    f_line(30, 30, 0.4f, f0, 1); turn(tcr, 40, f11, 10);
     f_line(10, 10, 0.4f, 10, 10);
     slide_drop();
          b_line(30, 30, 0.4f, cl&cr, 10); turn(tl, 40, f4, 10);

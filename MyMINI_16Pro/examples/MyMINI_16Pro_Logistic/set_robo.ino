@@ -43,8 +43,8 @@ void robot_setup()
     set_line_pid_tuning(0.020f);       // Kd ของ f_line/b_line; Kp ใช้ค่าที่ส่งในคำสั่ง
     set_gyro_kd(0.00850f, 0.0125f);    // Kd ของ fw_gyro, bw_gyro ตามลำดับ
     set_rotate_fallback(300, 550, 50); // ใช้เฉพาะ rotate_spin/pivot เมื่อ gyro ใช้ไม่ได้; turn_gyro จะหยุดพร้อมแจ้งข้อผิดพลาด
-    set_turn_approach(20, 20, 25);     // สปีดเข้าหาเส้นหลังจบด้วยเซนเซอร์/ระยะทาง, กำลังเบรกสวน
-    set_turn_center_brake(25, 30, 25, 30);  // tcl/tcr: เบรกสวนหลังเดินหน้า 25/10 ms, หลังถอย 20/60 ms
+    set_turn_approach(20, 20, 10);     // สปีดเข้าหาเส้นหลังจบด้วยเซนเซอร์/ระยะทาง, กำลังเบรกสวน
+    set_turn_center_brake(15, 10, 25, 30);  // tcl/tcr: เบรกสวนหลังเดินหน้า 25/10 ms, หลังถอย 20/60 ms
 
     // กำลังล้อขณะหมุน: (ซ้าย, ขวา) เป็นร้อยละของสปีดที่สั่ง; ค่าลบคือถอย
     set_turn_motor(TurnMode::fl, -20, 90);   // fl: ซ้ายถอยเบา ขวาเดินหน้า
